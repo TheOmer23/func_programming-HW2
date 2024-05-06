@@ -115,9 +115,14 @@ replicate n _ | n <= 0 = []
 replicate n a = a : replicate (n-1) a 
 
 inits :: [a] -> [[a]]
-inits = undefined
+inits xs = inits' xs []
+  where
+    inits' [] a = [a] 
+    inits' (y:ys) a = a : inits' ys (a ++ [y])
+
 tails :: [a] -> [[a]]
-tails = undefined
+tails [] = [[]]  
+tails xs = xs : tails (drop 1 xs)
 
 -- Section 3: zips and products
 zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
