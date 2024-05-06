@@ -126,11 +126,21 @@ tails xs = xs : tails (drop 1 xs)
 
 -- Section 3: zips and products
 zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
-zipWith = undefined
+zipWith _ [] _ = []
+zipWith _ _ [] = []
+zipWith f (a : as) (b : bs) = f a b : zipWith f as bs
+
 zip :: [a] -> [b] -> [(a, b)]
-zip = undefined
+zip _ [] = []
+zip [] _ = []
+zip (a : as) (b : bs) = (a,b) : zip as bs 
+
 zipFill :: a -> b -> [a] -> [b] -> [(a, b)]
-zipFill = undefined
+zipFill _ _ [] [] = []
+zipFill x y (a : as) [] = (a, y) : zipFill x y as []
+zipFill x y [] (b : bs) = (x,b) : zipFill x y [] bs
+zipFill x y (a : as) (b : bs) = (a, b) : zipFill x y as bs
+
 data ZipFail = ErrorFirst | ErrorSecond deriving (Eq, Show)
 zipFail :: [a] -> [b] -> Either ZipFail [(a, b)]
 zipFail = undefined
