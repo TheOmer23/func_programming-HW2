@@ -35,40 +35,85 @@ mapMaybe f (x : xs) = case f x of
 
 -- Section 1.2 Basic Eithers
 concatEitherMap :: (a -> Either e b) -> Either e a -> Either e b
-concatEitherMap = undefined
+concatEitherMap f x = case x of
+    Left e     -> Left e
+    Right a   -> f a
+
 either :: (a -> c) -> (b -> c) -> Either a b -> c
-either = undefined
+either f g x = case x of
+    Left a -> f a
+    Right b -> g b
+
 mapLeft :: (a -> c) -> Either a b -> Either c b
-mapLeft = undefined
+mapLeft f x = case x of
+    Left a -> Left (f a)
+    Right b -> Right b
+
 catEithers :: [Either e a] -> Either e [a]
-catEithers = undefined
+catEithers []  = Right []
+catEithers (x : xs) = case x of
+    Left e -> Left e
+    Right a -> case catEithers xs of
+        Right as -> Right  (a : as)
+        Left e -> Left e
+
 mapEither :: (a -> Either e b) -> [a] -> Either e [b]
-mapEither = undefined
+mapEither f xs =  catEithers $ map f xs
+
 partitionEithers :: [Either a b] -> ([a], [b])
-partitionEithers = undefined
+partitionEithers [] = ([], [])
+partitionEithers (x : xs) = 
+    let (as, bs) = partitionEithers xs
+    in case x of
+           Left a -> (a : as, bs)
+           Right b -> (as, b : bs)
+
 eitherToMaybe :: Either a b -> Maybe b
-eitherToMaybe = undefined
+eitherToMaybe x = case x of
+    Left _ -> Nothing
+    Right b -> Just b
 
 -- Section 2: Lists
 take :: Int -> [a] -> [a]
-take = undefined
+take _ [] = []
+take n (_ : _) | n <= 0 = []
+take n (x : xs) = x : take (n-1) xs
+  
 takeWhile :: (a -> Bool) -> [a] -> [a]
-takeWhile = undefined
+takeWhile _ [] = []
+takeWhile f (x : xs) = if f x then x : takeWhile f xs else []
+
 drop :: Int -> [a] -> [a]
-drop = undefined
+drop _ [] = []
+drop 0 xs = xs
+drop n (_ : xs) = drop (n-1) xs
+
 dropWhile :: (a -> Bool) -> [a] -> [a]
-dropWhile = undefined
+dropWhile _ [] = []
+dropWhile f (x : xs) = if f x then dropWhile f xs else x : xs
+
 reverse :: [a] -> [a]
-reverse = undefined
+reverse [] = []
+reverse xs = foldr (\c acc -> acc ++ [c]) [] xs
+
 rotate :: Int -> [a] -> [a]
-rotate = undefined
+rotate _ [] = []
+rotate n xs | n <= 0 = xs
+rotate n xs = rotate (n-1) ((drop ((length xs) - 1) xs) ++ (take ((length xs) - 1) xs))
+
 lotate :: Int -> [a] -> [a]
-lotate = undefined
+lotate _ [] = []
+lotate n xs | n <= 0 = xs
+lotate n xs = lotate (n-1) ((drop 1 xs) ++ (take 1 xs))
+
 type Generator a = (a -> a, a -> Bool, a)
 fromGenerator :: Generator a -> [a]
-fromGenerator = undefined
+fromGenerator (f, p, a) = if p a then f a : fromGenerator(f, p, f a) else [] 
+
 replicate :: Int -> a -> [a]
-replicate = undefined
+replicate n _ | n <= 0 = []
+replicate n a = a : replicate (n-1) a 
+
 inits :: [a] -> [[a]]
 inits = undefined
 tails :: [a] -> [[a]]
