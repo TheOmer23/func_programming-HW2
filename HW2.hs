@@ -143,23 +143,59 @@ zipFill x y (a : as) (b : bs) = (a, b) : zipFill x y as bs
 
 data ZipFail = ErrorFirst | ErrorSecond deriving (Eq, Show)
 zipFail :: [a] -> [b] -> Either ZipFail [(a, b)]
-zipFail = undefined
+zipFail [] [] = Right []
+zipFail (_ : _) [] = Left ErrorSecond
+zipFail [] (_ : _) = Left ErrorFirst
+zipFail (x : xs) (y : ys) = 
+    case zipFail xs ys of
+        Left e -> Left e
+        Right ps -> Right ((x, y) : ps)
+
 unzip :: [(a, b)] -> ([a], [b])
-unzip = undefined
+unzip [] = ([],[])
+unzip ((x,y) : xys) = 
+    let (xs, ys) = unzip xys  
+    in (x : xs, y : ys) 
+
 
 -- Section 4: Knight travels
+-- Position (0, 0) is the top-left corner.
 data KnightPos = KnightPos {x :: Int, y :: Int} deriving (Show, Eq)
 data KnightMove = TopLeft | TopRight | RightTop | RightBottom | BottomRight | BottomLeft | LeftBottom | LeftTop deriving (Enum, Bounded, Show, Eq)
+-- Utility to get all knight moves. Don't worry about the implementation of this.
 allKnightMoves :: [KnightMove]
-allKnightMoves = undefined
+allKnightMoves = [minBound .. maxBound]
 data Board = Board {width :: Int, height :: Int} deriving (Show, Eq)
 tour :: Board -> KnightPos -> Maybe [KnightMove]
 tour = undefined
 newtype InvalidPosition = InvalidPosition KnightPos deriving (Show, Eq)
 translate :: KnightPos -> [KnightMove] -> [KnightPos]
-translate = undefined
+translate _ [] = []
+translate knightPos (x : xs) = moveKnight knightPos x : translate (moveKnight knightPos x) xs
 translate' :: [KnightPos] -> Either InvalidPosition [KnightMove]
-translate' = undefined
+translate' [] = Right []
+translate' [_] = Right []
+translate' (x1 : x2 : xs) = 
+    case isValidMove x1 x2 of
+        Just m -> case translate' (x2 : xs) of
+            Left e -> Left e
+            Right ms -> Right (m:ms)
+        Nothing -> Left $ InvalidPosition x2
+
+isValidMove :: KnightPos -> KnightPos -> Maybe KnightMove
+isValidMove (KnightPos x1 y1) (KnightPos x2 y2) = 
+    lookup (x2 - x1, y2 - y1) [((-2,-1) , TopLeft), ((2,-1) , TopRight), ((1,-2), RightTop), ((1,2), RightBottom), ((2,1), BottomRight), ((-2,1), BottomLeft), ((-1,2), LeftBottom), ((-1,-2), LeftTop)]
+
+moveKnight :: KnightPos -> KnightMove -> KnightPos
+moveKnight (KnightPos x y) m = case m of
+    TopLeft      -> KnightPos (x - 2) (y - 1)
+    TopRight     -> KnightPos (x + 2) (y - 1)
+    RightTop     -> KnightPos (x + 1) (y - 2)
+    RightBottom  -> KnightPos (x + 1) (y + 2)
+    BottomRight  -> KnightPos (x + 2) (y + 1)
+    BottomLeft   -> KnightPos (x - 2) (y + 1)
+    LeftBottom   -> KnightPos (x - 1) (y + 2)
+    LeftTop      -> KnightPos (x - 1) (y - 2)
 
 -- Bonus (10 points)
 mark :: Board -> [KnightPos] -> Either InvalidPosition [[Int]]
