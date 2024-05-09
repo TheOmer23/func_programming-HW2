@@ -167,7 +167,23 @@ allKnightMoves :: [KnightMove]
 allKnightMoves = [minBound .. maxBound]
 data Board = Board {width :: Int, height :: Int} deriving (Show, Eq)
 tour :: Board -> KnightPos -> Maybe [KnightMove]
-tour = undefined
+tour board start = findTour board start [start] []
+
+findTour :: Board -> KnightPos -> [KnightPos] -> [KnightMove] -> Maybe [KnightMove]
+findTour board pos visited moves
+    | length visited == (width board * height board) = Just $ reverse moves
+    | otherwise = findFirstValidMove (possibleMoves board pos) visited moves
+  where
+    findFirstValidMove :: [KnightMove] -> [KnightPos] -> [KnightMove] -> Maybe [KnightMove]
+    findFirstValidMove [] _ _ = Nothing 
+    findFirstValidMove (m:ms) vsPos listMoves =
+        let newPos = moveKnight pos m
+        in if newPos `notElem` vsPos && isValidPosition board newPos
+           then case findTour board newPos (newPos : vsPos) (m : listMoves) of
+                Just l -> Just l
+                Nothing -> findFirstValidMove ms vsPos listMoves
+           else findFirstValidMove ms vsPos listMoves
+
 newtype InvalidPosition = InvalidPosition KnightPos deriving (Show, Eq)
 translate :: KnightPos -> [KnightMove] -> [KnightPos]
 translate _ [] = []
@@ -181,6 +197,12 @@ translate' (x1 : x2 : xs) =
             Left e -> Left e
             Right ms -> Right (m:ms)
         Nothing -> Left $ InvalidPosition x2
+
+possibleMoves :: Board -> KnightPos -> [KnightMove]
+possibleMoves board pos = filter (isValidPosition board . moveKnight pos) allKnightMoves
+
+isValidPosition :: Board -> KnightPos -> Bool
+isValidPosition (Board w h) (KnightPos x y) = x >= 0 && x < w && y >= 0 && y < h    
 
 isValidMove :: KnightPos -> KnightPos -> Maybe KnightMove
 isValidMove (KnightPos x1 y1) (KnightPos x2 y2) = 
